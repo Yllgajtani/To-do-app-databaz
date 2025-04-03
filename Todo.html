@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .form-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f6f7f9 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .form-container:hover {
+            transform: translateY(-2px);
+        }
+        
+        .todo-list {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .container h1 {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .container h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4f46e5, #06b6d4);
+            border-radius: 4px;
+        }
+        
+        #todos li {
+            position: relative;
+            padding-left: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        #todos li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4f46e5;
+            font-weight: bold;
+        }
+        
+        #todos li:hover {
+            transform: translateX(5px);
+        }
+        
+        input:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-cyan-50 min-h-screen flex items-center justify-center p-4">
+    <div class="container max-w-3xl w-full p-8 mx-auto">
+        <h1 class="text-4xl font-bold text-indigo-700 mb-2 text-center">Todo App</h1>
+        
+        <p class="text-gray-500 text-center mb-8">Organize your tasks efficiently</p>
+
+        <div class="form-container p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Task Name</label>
+                    <input type="text" id="name" placeholder="Enter task name" required 
+                           class="px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <input type="text" id="kategoria" placeholder="Category" required 
+                           class="px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <input type="text" id="proriteti" placeholder="Priority" required 
+                           class="px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Time</label>
+                    <input type="text" id="koha" placeholder="Time" required 
+                           class="px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition">
+                </div>
+            </div>
+            <button id="addTodo" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.01] shadow-lg">
+                <i class="fas fa-plus mr-2"></i> Add Todo
+            </button>
+        </div>
+
+        <div class="todo-list p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-clipboard-list mr-2 text-indigo-600"></i> Your Todos
+            </h2>
+            <ul id="todos" class="space-y-3"></ul>
+            
+            <div class="mt-6 text-center text-sm text-gray-500">
+                <i class="fas fa-lightbulb mr-1"></i> Tip: Click on a task to mark as complete
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const addTodoButton = document.getElementById('addTodo');
+        const todosList = document.getElementById('todos');
+
+        // Fetch todos on page load
+        async function fetchTodos() {
+            try {
+                const response = await fetch('http://localhost:3000/todos');
+                const todos = await response.json();
+                todosList.innerHTML = '';
+                
+                if (todos.length === 0) {
+                    todosList.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-tasks text-4xl mb-3 text-indigo-200"></i>
+                            <p class="text-lg">No tasks yet. Add one above!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                todos.forEach(todo => {
+                    const li = document.createElement('li');
+                    li.className = 'bg-gray-50 hover:bg-gray-100 p-4 rounded-lg cursor-pointer transition-all flex justify-between items-center';
+                    
+                    // Create a nice colored badge for priority
+                    let priorityClass = 'px-2 py-1 rounded-full text-xs font-medium';
+                    switch(todo.Proriteti.toLowerCase()) {
+                        case 'high':
+                            priorityClass += ' bg-red-100 text-red-800';
+                            break;
+                        case 'medium':
+                            priorityClass += ' bg-yellow-100 text-yellow-800';
+                            break;
+                        case 'low':
+                            priorityClass += ' bg-green-100 text-green-800';
+                            break;
+                        default:
+                            priorityClass += ' bg-gray-100 text-gray-800';
+                    }
+                    
+                    li.innerHTML = `
+                        <div>
+                            <span class="font-medium text-gray-800">${todo.Name}</span>
+                            <span class="ml-2 text-sm text-gray-500">${todo.kategoria}</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="${priorityClass}">${todo.Proriteti}</span>
+                            <span class="text-sm text-gray-500"><i class="far fa-clock mr-1"></i>${todo.koha}</span>
+                            <button class="delete-btn text-gray-400 hover:text-red-500 transition">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add click handler for completion
+                    li.addEventListener('click', function() {
+                        this.classList.toggle('line-through');
+                        this.classList.toggle('text-gray-400');
+                        const check = this.querySelector('div:first-child');
+                        if (this.classList.contains('line-through')) {
+                            check.innerHTML = '<i class="fas fa-check-circle text-green-500 mr-2"></i>' + check.innerHTML;
+                        } else {
+                            const icon = this.querySelector('i.fa-check-circle');
+                            if (icon) icon.remove();
+                        }
+                    });
+                    
+                    // Add delete functionality
+                    li.querySelector('.delete-btn').addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        try {
+                            const response = await fetch(`http://localhost:3000/todos/${todo.id || 0}`, {
+                                method: 'DELETE'
+                            });
+                            if (response.ok) {
+                                this.closest('li').style.opacity = '0';
+                                setTimeout(() => {
+                                    this.closest('li').remove();
+                                    if (todosList.children.length === 0) {
+                                        todosList.innerHTML = `
+                                            <div class="text-center py-8 text-gray-500">
+                                                <i class="fas fa-tasks text-4xl mb-3 text-indigo-200"></i>
+                                                <p class="text-lg">No tasks yet. Add one above!</p>
+                                            </div>
+                                        `;
+                                    }
+                                }, 300);
+                            }
+                        } catch (error) {
+                            console.error("Error deleting todo:", error);
+                        }
+                    });
+                    
+                    todosList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Error fetching todos:", error);
+            }
+        }
+
+        // Add a new todo
+        addTodoButton.addEventListener('click', async () => {
+            const name = document.getElementById('name').value;
+            const kategoria = document.getElementById('kategoria').value;
+            const proriteti = document.getElementById('proriteti').value;
+            const koha = document.getElementById('koha').value;
+
+            const todoData = {
+                Name: name,
+                kategoria: kategoria,
+                Proriteti: proriteti,
+                koha: koha
+            };
+
+            if (!name || !kategoria || !proriteti || !koha) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/todos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(todoData)
+                });
+
+                const newTodo = await response.json();
+                
+                // Clear inputs
+                document.getElementById('name').value = '';
+                document.getElementById('kategoria').value = '';
+                document.getElementById('proriteti').value = '';
+                document.getElementById('koha').value = '';
+                
+                // Show success animation
+                addTodoButton.innerHTML = '<i class="fas fa-check"></i> Task Added!';
+                addTodoButton.classList.remove('bg-indigo-600');
+                addTodoButton.classList.add('bg-green-500');
+                setTimeout(() => {
+                    addTodoButton.innerHTML = '<i class="fas fa-plus mr-2"></i> Add Todo';
+                    addTodoButton.classList.remove('bg-green-500');
+                    addTodoButton.classList.add('bg-indigo-600');
+                }, 2000);
+                
+                fetchTodos(); // Refresh todo list after adding a new todo
+            } catch (error) {
+                console.error("Error adding todo:", error);
+                
+                // Show error animation
+                addTodoButton.innerHTML = '<i class="fas fa-times"></i> Error!';
+                addTodoButton.classList.remove('bg-indigo-600');
+                addTodoButton.classList.add('bg-red-500');
+                setTimeout(() => {
+                    addTodoButton.innerHTML = '<i class="fas fa-plus mr-2"></i> Add Todo';
+                    addTodoButton.classList.remove('bg-red-500');
+                    addTodoButton.classList.add('bg-indigo-600');
+                }, 2000);
+            }
+        });
+
+        // Initial fetch when page loads
+        fetchTodos();
+    </script>
+</body>
+</html>
